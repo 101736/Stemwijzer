@@ -53,13 +53,20 @@ try {
     $stmt = $db->prepare("SELECT COUNT(*) FROM Partij WHERE partij_id = ?");
     $stmt->execute([$partij_id]);
     $partyExists = $stmt->fetchColumn() > 0;
-    
+
     if (!$partyExists) {
-        echo json_encode([
-            'success' => false, 
-            'message' => 'Ongeldige partij'
-        ]);
-        exit;
+        $placeholderName = 'Partij ' . $partij_id;
+        $placeholderSlogan = '';
+        $insertStmt = $db->prepare("INSERT INTO Partij (partij_id, naam, slogan) VALUES (?, ?, ?)");
+        try {
+            $insertStmt->execute([$partij_id, $placeholderName, $placeholderSlogan]);
+        } catch (PDOException $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Ongeldige partij en kon geen placeholder aanmaken'
+            ]);
+            exit;
+        }
     }
     
     $stmt = $db->prepare("
